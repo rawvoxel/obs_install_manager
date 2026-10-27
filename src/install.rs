@@ -66,6 +66,7 @@ pub fn obs(tx: Sender<Event>) -> Result<()> {
         let cfg_src = cfg_name.join("obs-studio");
         let cfg_dst = cfg_dir.join("obs-studio");
 
+        // Remove existing files of the same name
         if cfg_path.exists() {
             fs::remove_file(&cfg_path)?;
         }
@@ -127,6 +128,7 @@ pub fn obs(tx: Sender<Event>) -> Result<()> {
             fs::remove_dir_all(&asset_dir)?;
         }
 
+        // FIXME: Shortcuts are not getting deleted properly.
         // Create OBS shortcut
         {
             let scut_path = exe_dir.join("OBS.lnk");
@@ -141,6 +143,7 @@ pub fn obs(tx: Sender<Event>) -> Result<()> {
         opener::open(exe_dir)?;
     }
 
+    // FIXME: This does not seem to work at all on current MacOS.
     // MacOS setup
     #[cfg(target_os = "macos")]
     {
@@ -242,34 +245,5 @@ pub fn vmb(tx: Sender<Event>) -> Result<()> {
 #[cfg(target_os = "macos")]
 pub fn eab(_: Sender<Event>) -> Result<()> {
     opener::open_browser(&crate::EAB_URL)?;
-    Ok(())
-}
-
-// Sonobus
-#[cfg(any(target_os = "windows", target_os = "macos"))]
-pub fn sbs(tx: Sender<Event>) -> Result<()> {
-    // Search tags per operating system
-    #[cfg(target_os = "windows")]
-    let incl = vec!["win", "exe"];
-    #[cfg(target_os = "macos")]
-    let incl = vec!["mac", "dmg"];
-
-    // Get latest OBS asset infos
-    let git_release = GithubApiClient::new()?.get_release(&crate::SONOBUS_REPO, None)?;
-    let git_assets = git_release.get_assets(Some(incl), None, None);
-    let git_asset = git_assets.first().ok_or_eyre("Git asset not found!")?;
-
-    // Build paths
-    let exe_path = std::env::current_exe()?;
-    let exe_dir = exe_path.parent().unwrap();
-    let file_path = exe_dir.join(&git_asset.name);
-
-    // Download & run
-    if !file_path.exists() {
-        file::download(&git_asset.browser_download_url, &file_path, &tx)?;
-    }
-    file::run(&file_path)?;
-    fs::remove_file(&file_path)?;
-
     Ok(())
 }

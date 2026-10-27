@@ -32,11 +32,6 @@ pub const BLACKHOLE_REPO: GithubRepo = GithubRepo {
     name: "BlackHole",
 };
 
-pub const SONOBUS_REPO: GithubRepo = GithubRepo {
-    author: "sonosaurus",
-    name: "sonobus",
-};
-
 #[cfg(any(target_os = "windows", target_os = "linux"))]
 pub const OBS_CONFIG_URL: &str =
     "https://github.com/robertwaredev/daw-obs-config/archive/refs/heads/master.zip";
